@@ -1,11 +1,29 @@
 from django.shortcuts import render
-from .models import *
-from datetime import datetime, date
-from django.template import defaultfilters
-from django.http import HttpResponseRedirect, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 
-# Create your views here.
+from django.template import RequestContext
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
+from weatherapp.models import Document
+from weatherapp.forms import DocumentForm
+
 def index(request):
-	context = {}
-	return render(request, 'weatherapp/index.html', context)
+    # Handle file upload
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile = request.FILES['docfile'])
+            newdoc.save()
+
+            # Redirect to the document list after POST
+            return HttpResponseRedirect(reverse('index'))
+    else:
+        form = DocumentForm() # A empty, unbound form
+
+    # Load documents for the list page
+    documents = Document.objects.all()
+    context = {'documents': documents, 'form': form}
+
+    print(context)
+    # Render list page with the documents and the form
+    return render(request, 'weatherapp/index.html', context)

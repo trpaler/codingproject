@@ -1,24 +1,57 @@
-{% verbatim %}
+
+<!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <title>Minimal Django File Upload Example</title>
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     </head>
+
     <body>
-        <div id="app"></div>
+        <!-- List of uploaded documents -->
+        {% if documents %}
+            <ul>
+                {% for document in documents %}
+                    <li><a href="{{ document.docfile.url }}">{{ document.docfile.name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No documents.</p>
+        {% endif %}
+
+        <p> Upload CSV</p>
+        <!-- Upload form. Note enctype attribute! -->
+
+
+        <div id="app">
+
+        </div>
+
     </body>
+
+</html>
+
 
 <script>
     new Vue({
       el: "#app",
       template:
-      `<div class = templateField>
-          <h1>Hello world!</h1>
-          <p>Hello world!</p>
-          <p>{{substitute}}</p>
-      </div>`,
+      `            <form action="{% url 'index' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <p>{{ form.non_field_errors }}</p>
+
+                <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+
+                <p>
+                    {{ form.docfile.errors }}
+                    {{ form.docfile }}
+                </p>
+
+                  <p><input type="submit" value="Upload"/></p>
+            </form>`,
       data: {
         substitute: "text"
       },
     });
+
 </script>
-{% endverbatim %}
