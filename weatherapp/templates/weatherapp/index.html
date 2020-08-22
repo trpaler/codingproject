@@ -33,18 +33,23 @@
 
 
 <script>
+
+
     new Vue({
       el: "#app",
       template:
       `            <form action="{% url 'index' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                <p>{{ form.non_field_errors }}</p>
+                <p>{{ form.non_field_errors }}</p> 
 
                 <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
 
                 <p>
                     {{ form.docfile.errors }}
                     {{ form.docfile }}
+                    {{ form.date.errors }}
+
+                    {{ form.date }} (yyyy-mm-dd)
                 </p>
 
                   <p><input type="submit" value="Upload"/></p>
@@ -52,6 +57,9 @@
       data: {
         substitute: "text"
       },
+      mounted() {
+        console.log('created');
+      }
     });
 
 </script>

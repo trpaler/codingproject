@@ -9,21 +9,26 @@ from weatherapp.forms import DocumentForm
 
 def index(request):
     # Handle file upload
+    context = {}
     if request.method == 'POST':
+        print(request.POST)
+        print('asdasdasdasdasd')
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
-            newdoc = Document(docfile = request.FILES['docfile'])
+            docfile = request.FILES['docfile']
+            for line in docfile:
+                print(line)
+            newdoc = Document(docfile=docfile, date=request.POST.get('date'))
             newdoc.save()
-
-            # Redirect to the document list after POST
             return HttpResponseRedirect(reverse('index'))
+        else:
+            print(form.errors)
     else:
-        form = DocumentForm() # A empty, unbound form
+        form = DocumentForm()
 
-    # Load documents for the list page
+    # Load documents for the index page
     documents = Document.objects.all()
     context = {'documents': documents, 'form': form}
 
-    print(context)
-    # Render list page with the documents and the form
+    # Render index page with the documents and the form
     return render(request, 'weatherapp/index.html', context)
