@@ -9,7 +9,7 @@
 
     <body>
         <!-- List of uploaded documents -->
-        {% if documents %}
+<!--         {% if documents %}
             <ul>
                 {% for document in documents %}
                     <li><a href="{{ document.docfile.url }}">{{ document.docfile.name }}</a></li>
@@ -18,48 +18,129 @@
         {% else %}
             <p>No documents.</p>
         {% endif %}
-
+ -->
+        {{ lines }}
         <p> Upload CSV</p>
         <!-- Upload form. Note enctype attribute! -->
+        <form action="{% url 'index' %}" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <p>{{ form.non_field_errors }}</p> 
 
+                        <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
 
-        <div id="app">
+                        <p>
+                            {{ form.docfile.errors }}
+                            {{ form.docfile }}
+                            {{ form.date.errors }}
 
+                            {{ form.date }} (yyyy-mm-dd)
+                        </p>
+
+                          <p><input type="submit" value="Upload"/></p>
+                    </form>
+        <div id="table" >
+            <vtable title="{{lines}}"></vtable>
         </div>
 
     </body>
+
 
 </html>
 
 
 <script>
 
+{% verbatim %}
+    Vue.component('vtable', {
+      template:
+      `<div>
+        <table style="width:100%">
+          <tr>
+            <th>Gender</th>
+            <th>Title </th>
+            <th>First Name</th>
+            <th>Last name</th>
+            <th>Street number</th>
+            <th>Street name</th>
+            <th>City</th>
+            <th>Country</th>
+            <th>Phone </th>
+            <th>Picture Large</th>
+            <th>Picture Medium</th>
+            <th>Picture Thumbnail</th>
+
+          </tr>
+          <tr v-for="(obj, index) in list">
+            <td>{{ obj.gender }}</td>
+            <td>{{ obj.title }}</td>
+            <td>{{ obj.firstName }}</td>
+            <td>{{ obj.lastName }}</td>
+            <td>{{ obj.streetNumber }}</td>
+            <td>{{ obj.streetName }}</td>
+            <td>{{ obj.city }}</td>
+            <td>{{ obj.country }}</td>
+            <td>{{ obj.phone }}</td>
+            <td><img :src="obj.picLarge"/> </td>
+            <td><img :src="obj.picMed"/> </td>
+            <td><img :src="obj.picThumbnail"/> </td>
+
+          </tr>
+        </table>
+      </div>`,
+
+        data: function() {
+            return {
+                objects: null,
+                list: [],
+                top: 0,
+                bottom: 12
+            }
+        },
+
+        props: {
+            title: {
+                type: Array,
+            }
+        },
+
+      created() {
+        this.parseData();
+      },
+
+      methods: {
+        parseData() {
+            let data = this.title.split(',').slice(12, this.title.length);    
+            for (let x = 0; this.bottom <= data.length; x++, this.top += 12, this.bottom +=12) {
+                let objects = {};
+                objects.gender = data[0 + this.top];
+                objects.title = data[1 + this.top];
+                objects.firstName = data[2 + this.top];
+                objects.lastName = data[3 + this.top];
+                objects.streetNumber = data[4 + this.top];
+                objects.streetName = data[5 + this.top];
+                objects.city = data[6 + this.top];
+                objects.country = data[7 + this.top];
+                objects.phone = data[8 + this.top];
+                objects.picLarge = data[9 + this.top];
+                objects.picMed = data[10 + this.top];
+                objects.picThumbnail = data[11 + this.top];
+                this.list.push(objects);
+            }
+
+        }
+      }
+  });
 
     new Vue({
-      el: "#app",
-      template:
-      `            <form action="{% url 'index' %}" method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <p>{{ form.non_field_errors }}</p> 
+        el: '#table',
+    })
 
-                <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
-
-                <p>
-                    {{ form.docfile.errors }}
-                    {{ form.docfile }}
-                    {{ form.date.errors }}
-
-                    {{ form.date }} (yyyy-mm-dd)
-                </p>
-
-                  <p><input type="submit" value="Upload"/></p>
-            </form>`,
-      data: {
-        substitute: "text"
-      },
-      mounted() {
-        console.log('created');
-      }
-    });
+{% endverbatim %}
 
 </script>
+
+<style>
+    #app {
+        background: red;
+    }
+</style>
