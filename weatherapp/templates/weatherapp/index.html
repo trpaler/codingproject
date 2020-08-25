@@ -28,8 +28,8 @@
                         </p>
                           <p><input type="submit" value="Upload"/></p>
                     </form>
-        <div id="table" >
-            <vtable title="{{lines}}" date="{{date}}"></vtable>
+        <div id="table">
+            <vtable v-if="Boolean({{lines}})" lines="{{lines}}" date="{{date}}"></vtable>
         </div>
 
     </body>
@@ -78,7 +78,7 @@
 
         props: {
             
-            title: {
+            lines: {
                 type: [Array, String],
                 required: true
             },
@@ -95,7 +95,7 @@
 
       methods: {
         async parseData() {
-            let data = this.title.split(',').slice(12, this.title.length);    
+            let data = this.lines.split(',').slice(12, this.lines.length);    
             for (let x = 0; this.bottom <= data.length; x++, this.top += 12, this.bottom += 12) {
                 let objects = {};
                 objects.firstName = data[2 + this.top];
@@ -116,11 +116,9 @@
             let formattedInputDate = inputDate.getFullYear() + "-" + (inputDate.getMonth() + 1) + "-" + inputDate.getDate();
 
             if (formattedDateToday > formattedInputDate) {
-                console.log('inside?');
                 let url = await fetch(`https://api.weatherapi.com/v1/history.json?key=ef3f663500f64bd98ed234722202408&q=${city}&dt=${date}`);
                 response = await url.json();
             } else {
-                console.log('date provided greater than today');
                 let days_elapsed = parseInt((inputDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
                 let url = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=ef3f663500f64bd98ed234722202408&q=${city}&days=${days_elapsed}`);
                 response = await url.json();
