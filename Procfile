@@ -1,2 +1,2 @@
-release: python manage.py migrate
-web: gunicorn codingproject.wsgi
+release: python manage.py migrate --noinput
+web: gunicorn mysite.wsgi
