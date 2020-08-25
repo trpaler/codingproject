@@ -1,5 +1,5 @@
-# codingproject
-
+# codingproject 
+visit the site at [Weather Forecast App](https://weather-forecast-app-2.herokuapp.com/)
 
 ## Getting started
 
@@ -13,3 +13,5 @@
 1. Once all the dependencies are installed run `python manage.py runserver`
 2. Open your browser at `http://127.0.0.1:8000`
 3. Run the migrations if its your first time by running `python manage.py migrate`
+
+
