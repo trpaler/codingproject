@@ -23,12 +23,12 @@ def index(request):
             newdoc.save()
             context['lines'] = str(lines)
             context['status'] = 200
+            context['date'] = newdoc.date
 
     else:
         form = DocumentForm()
 
     # Load documents for the index page
-    documents = Document.objects.all()
-    context = {'documents': documents, 'form': form, 'lines': lines}
+    context['form'] = form
     # Render index page with the documents and the form
     return render(request, 'weatherapp/index.html', context)

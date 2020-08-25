@@ -3,43 +3,33 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Minimal Django File Upload Example</title>
+        <title>Weather App</title>
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     </head>
 
     <body>
-        <!-- List of uploaded documents -->
-<!--         {% if documents %}
-            <ul>
-                {% for document in documents %}
-                    <li><a href="{{ document.docfile.url }}">{{ document.docfile.name }}</a></li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No documents.</p>
-        {% endif %}
- -->
-        {{ lines }}
+
         <p> Upload CSV</p>
-        <!-- Upload form. Note enctype attribute! -->
         <form action="{% url 'index' %}" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <p>{{ form.non_field_errors }}</p> 
 
                         <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
 
-                        <p>
+                        <p class="error">
                             {{ form.docfile.errors }}
-                            {{ form.docfile }}
                             {{ form.date.errors }}
+                        </p>
+                        <p>
+
+                            {{ form.docfile }}
 
                             {{ form.date }} (yyyy-mm-dd)
                         </p>
-
                           <p><input type="submit" value="Upload"/></p>
                     </form>
         <div id="table" >
-            <vtable title="{{lines}}"></vtable>
+            <vtable title="{{lines}}" date="{{date}}"></vtable>
         </div>
 
     </body>
@@ -54,36 +44,25 @@
     Vue.component('vtable', {
       template:
       `<div>
-        <table style="width:100%">
+        <table>
           <tr>
-            <th>Gender</th>
-            <th>Title </th>
             <th>First Name</th>
             <th>Last name</th>
-            <th>Street number</th>
-            <th>Street name</th>
             <th>City</th>
-            <th>Country</th>
-            <th>Phone </th>
-            <th>Picture Large</th>
-            <th>Picture Medium</th>
-            <th>Picture Thumbnail</th>
-
+            <th>Phone</th>
+            <th>Weather</th>
           </tr>
           <tr v-for="(obj, index) in list">
-            <td>{{ obj.gender }}</td>
-            <td>{{ obj.title }}</td>
             <td>{{ obj.firstName }}</td>
             <td>{{ obj.lastName }}</td>
-            <td>{{ obj.streetNumber }}</td>
-            <td>{{ obj.streetName }}</td>
             <td>{{ obj.city }}</td>
-            <td>{{ obj.country }}</td>
             <td>{{ obj.phone }}</td>
-            <td><img :src="obj.picLarge"/> </td>
-            <td><img :src="obj.picMed"/> </td>
-            <td><img :src="obj.picThumbnail"/> </td>
-
+            <td> 
+                <span v-if="obj.weatherObj">
+                    {{ obj.weatherObj.message }}
+                    <img :src="obj.weatherObj.imgSrc" />
+                </span>
+            </td>
           </tr>
         </table>
       </div>`,
@@ -98,8 +77,15 @@
         },
 
         props: {
+            
             title: {
-                type: Array,
+                type: [Array, String],
+                required: true
+            },
+            
+            date: {
+                type: String,
+                required: true
             }
         },
 
@@ -108,27 +94,51 @@
       },
 
       methods: {
-        parseData() {
+        async parseData() {
             let data = this.title.split(',').slice(12, this.title.length);    
-            for (let x = 0; this.bottom <= data.length; x++, this.top += 12, this.bottom +=12) {
+            for (let x = 0; this.bottom <= data.length; x++, this.top += 12, this.bottom += 12) {
                 let objects = {};
-                objects.gender = data[0 + this.top];
-                objects.title = data[1 + this.top];
                 objects.firstName = data[2 + this.top];
                 objects.lastName = data[3 + this.top];
-                objects.streetNumber = data[4 + this.top];
-                objects.streetName = data[5 + this.top];
                 objects.city = data[6 + this.top];
                 objects.country = data[7 + this.top];
                 objects.phone = data[8 + this.top];
-                objects.picLarge = data[9 + this.top];
-                objects.picMed = data[10 + this.top];
-                objects.picThumbnail = data[11 + this.top];
+                objects.weatherObj = await this.fetchDate(this.date, objects.city);
                 this.list.push(objects);
             }
 
+        },
+
+        async fetchDate(date, city) {
+            let inputDate = new Date(date);
+            const today = new Date();
+            let formattedDateToday = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+            let formattedInputDate = inputDate.getFullYear() + "-" + (inputDate.getMonth() + 1) + "-" + inputDate.getDate();
+
+            if (formattedDateToday > formattedInputDate) {
+                console.log('inside?');
+                let url = await fetch(`https://api.weatherapi.com/v1/history.json?key=ef3f663500f64bd98ed234722202408&q=${city}&dt=${date}`);
+                response = await url.json();
+            } else {
+                console.log('date provided greater than today');
+                let days_elapsed = parseInt((inputDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+                let url = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=ef3f663500f64bd98ed234722202408&q=${city}&days=${days_elapsed}`);
+                response = await url.json();
+            }
+            if (response) {
+                if (response.error) {
+                    return {message: response.error.message};
+                }
+
+                const condition = response.forecast.forecastday[0].day.condition;
+                return {message: condition.text, imgSrc: condition.icon };
+            }
+
+            return {message: 'Could not fetch data with provided date.'};
+            
         }
-      }
+
+      },
   });
 
     new Vue({
@@ -140,7 +150,26 @@
 </script>
 
 <style>
-    #app {
-        background: red;
+
+    #table {
+        display: flex;
+        flex-align: center;
+        justify-content: center;
+    }
+    table {
+      border-collapse: collapse;
+    }
+
+    table, th, td {
+      border: 1px solid black;
+      vertical-align: middle;
+      padding: 1rem;
+    }
+
+    tr:nth-child(even) {background-color: #f2f2f2;}
+
+    ul.errorlist {
+        list-style-type: none;
+        color: red;
     }
 </style>
